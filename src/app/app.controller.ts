@@ -1,8 +1,6 @@
-import { Body, Controller, Get, Post, Query, UseGuards } from '@nestjs/common'
+import { Body, Controller, Get, Post, Query } from '@nestjs/common'
 import { AppService } from './app.service'
-import { tokenDto } from './dto/tokenDto'
 import { typePipe } from './pipes/type.pipe'
-import { AuthGuard } from './guards/auth.guard'
 import { homework, logindata } from '@/types'
 
 @Controller()
@@ -11,7 +9,9 @@ export class AppController {
 
   @Get()
   get() {
-    return 12
+    return `
+      <h1 color="red">王少鹏真帅呀!!</h1>
+    `
   }
 
   @Get('1')
