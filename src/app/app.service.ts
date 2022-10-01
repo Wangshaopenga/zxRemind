@@ -1,10 +1,9 @@
-import { Injectable } from '@nestjs/common'
 import { HttpService } from '@nestjs/axios'
-import { lastValueFrom } from 'rxjs'
+import { Injectable } from '@nestjs/common'
 import dayjs from 'dayjs'
 import duration from 'dayjs/plugin/duration'
-import axios from 'axios'
-import { homework, logindata } from '@/types'
+import { lastValueFrom } from 'rxjs'
+import { homework } from '@/types'
 dayjs.extend(duration)
 @Injectable()
 export class AppService {
@@ -19,14 +18,14 @@ export class AppService {
     const p = await Promise.all(list)
     p.forEach((el) => {
       el.forEach((e) => {
-        if (!e.studentHomework) {
+        if (!e.studentHomework || e.studentHomework.answerProgress < 1) {
           const now = dayjs()
           const end = dayjs(e.endtime)
           if (now.isBefore(end)) {
             const days = end.diff(now, 'days')
             const hours = end.diff(now, 'hours')
             const minutes = end.diff(now, 'minutes')
-            infos.push(`${e.courseName} ${type}作业 ${e.title} 还有${days}天${hours - 24 * days}小时${minutes - hours * 60}截至`)
+            infos.push(`${e.courseName} ${type}作业 ${e.title} 还有${days}天${hours - 24 * days}小时${minutes - hours * 60}分钟 截至`)
           }
         }
       })
@@ -34,18 +33,23 @@ export class AppService {
     return infos
   }
 
-  async login(data: logindata) {
-    axios.post('https://cyber-tea-platform.anrunlu.net/auth/login', {
-      body: {
-        username: '2020414382',
-        password: 'kkxx123.',
-      },
-    })
-      .then((res) => {
-        console.log(res)
-      }, (err) => {
-        console.log(err)
-      })
+  async login(token: any) {
+    process.env.TOKEN = '123'
+
+    console.log(process.env.TOKEN)
+    // const response$ = this.httpService.post('/auth/login', {
+    //   body: {
+    //     username: token.username,
+    //     password: token.password,
+    //   },
+    //   header: {
+    //     Authorization: 'Bearer ',
+    //   },
+    // })
+    // lastValueFrom(response$).then((res) => {
+    //   console.log(res.data ? res.data : res)
+    // }, (err) => { console.log(err) })
+    // return token
   }
 
   async getCourseData() {
