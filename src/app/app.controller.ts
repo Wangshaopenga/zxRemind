@@ -1,31 +1,21 @@
-import { Body, Controller, Get, Post, Query } from '@nestjs/common'
-import { AppService } from './app.service'
+import { BadRequestException, Body, Controller, Get, Post, Query } from '@nestjs/common'
 import { typePipe } from './pipes/type.pipe'
-import { homework, logindata } from '@/types'
+import { AppService } from './app.service'
+import { homework } from '@/types'
 
 @Controller()
 export class AppController {
   constructor(private readonly appService: AppService) {}
 
   @Get()
-  get() {
-    return `
-      <h1 color="red">王少鹏真帅呀!!</h1>
-    `
-  }
-
-  @Get('1')
   getTime(@Query('type', typePipe) type: homework) {
     return this.appService.getTime(type)
   }
 
-  @Post('login')
-  login(@Body() data: logindata) {
-    return this.appService.login(data)
-  }
-
-  @Get('info')
-  get1() {
-    return 1234
+  @Post('token')
+  setToken(@Body('token') token: string) {
+    if (!token)
+      throw new BadRequestException({ message: 'token不能为空' })
+    this.appService.setToken(token)
   }
 }

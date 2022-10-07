@@ -3,11 +3,14 @@ import { Injectable } from '@nestjs/common'
 import dayjs from 'dayjs'
 import duration from 'dayjs/plugin/duration'
 import { lastValueFrom } from 'rxjs'
+import { Cron } from '@nestjs/schedule'
+import { ConfigService } from '@nestjs/config'
 import { homework } from '@/types'
+import { EmailService } from '@/email/email.service'
 dayjs.extend(duration)
 @Injectable()
 export class AppService {
-  constructor(private httpService: HttpService) { }
+  constructor(private httpService: HttpService, private emailService: EmailService, private config: ConfigService) { }
   async getTime(type: homework) {
     const infos = []
     const course = await this.getCourseData()
@@ -33,25 +36,6 @@ export class AppService {
     return infos
   }
 
-  async login(token: any) {
-    process.env.TOKEN = '123'
-
-    console.log(process.env.TOKEN)
-    // const response$ = this.httpService.post('/auth/login', {
-    //   body: {
-    //     username: token.username,
-    //     password: token.password,
-    //   },
-    //   header: {
-    //     Authorization: 'Bearer ',
-    //   },
-    // })
-    // lastValueFrom(response$).then((res) => {
-    //   console.log(res.data ? res.data : res)
-    // }, (err) => { console.log(err) })
-    // return token
-  }
-
   async getCourseData() {
     const response$ = this.httpService.get('/stu/course')
     const res = await lastValueFrom(response$)
@@ -69,5 +53,35 @@ export class AppService {
       e.courseName = course
     })
     return res.data.data
+  }
+
+  @Cron('0 0 20 * * *')
+  async remind() {
+    const experiment = await this.getTime('课程实验')
+    const homework = await this.getTime('课后作业')
+    const info: string[] = []
+    experiment.forEach((e) => {
+      info.push(e)
+    })
+    homework.forEach((e) => {
+      info.push(e)
+    })
+    const day: string[] = []
+    const hour: string[] = []
+    info.forEach((e: string) => {
+      const h = e.indexOf('小时')
+      const d = e.indexOf('天')
+      if (Number(e[h - 1]) === 0)
+        hour.push(e)
+      if (Number(e[d - 1]) === 1)
+        day.push(e)
+    })
+    if (hour.length !== 0 || day.length !== 0)
+      this.emailService.sendEmail([...hour, ...day])
+  }
+
+  setToken(token: string) {
+    process.env.TOKEN = token
+    return 'OK'
   }
 }
