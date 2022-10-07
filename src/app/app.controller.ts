@@ -12,6 +12,11 @@ export class AppController {
     return this.appService.getTime(type)
   }
 
+  @Get('1')
+  aa() {
+    return '123'
+  }
+
   @Post('token')
   setToken(@Body('token') token: string) {
     if (!token)
